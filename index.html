@@ -1,45 +1,44 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-    <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo da Velha</title>
-    <link rel="stylesheet" href="style.css">
-    </head>
-    <body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jogo da Velha Online</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
     <div class="container">
-        <h1>Jogo da Velha</h1>
-        <div id="status">Vez do jogador <span>X</span></div>
-        <div class="board">
+      <h1>Jogo da Velha</h1>
+      <div id="status">Vez do jogador <span>X</span></div>
+      <div class="board">
         <div class="row">
-            <div class="cell" data-index="0"></div>
-            <div class="cell" data-index="1"></div>
-            <div class="cell" data-index="2"></div>
-        </div>
-        <div class="row">
-            <div class="cell" data-index="3"></div>
-            <div class="cell" data-index="4"></div>
-            <div class="cell" data-index="5"></div>
+          <div class="cell" data-index="0"></div>
+          <div class="cell" data-index="1"></div>
+          <div class="cell" data-index="2"></div>
         </div>
         <div class="row">
-            <div class="cell" data-index="6"></div>
-            <div class="cell" data-index="7"></div>
-            <div class="cell" data-index="8"></div>
+          <div class="cell" data-index="3"></div>
+          <div class="cell" data-index="4"></div>
+          <div class="cell" data-index="5"></div>
         </div>
+        <div class="row">
+          <div class="cell" data-index="6"></div>
+          <div class="cell" data-index="7"></div>
+          <div class="cell" data-index="8"></div>
         </div>
-        <button id="resetBtn" type="button" class="btn">
-            <strong>REINICIAR JOGO</strong>
-            <div id="container-stars">
-            <div id="stars"></div>
-            </div>
-        
-            <div id="glow">
-            <div class="circle"></div>
-            <div class="circle"></div>
-            </div>
-        </button>
+      </div>
+      <button id="resetBtn" type="button" class="btn">
+        <strong>REINICIAR JOGO</strong>
+        <div id="container-stars">
+          <div id="stars"></div>
+        </div>
+        <div id="glow">
+          <div class="circle"></div>
+          <div class="circle"></div>
+        </div>
+      </button>
     </div>
 
-    <script src="script.js"></script>
-    </body>
+    <script type="module" src="script.js"></script>
+  </body>
 </html>
