@@ -55,13 +55,24 @@ function updateScoreboard() {
 // 🔹 Atualiza status na tela
 function updateStatus() {
   if (gameOver) {
-    statusText.style.color = "Chocolate";
     if (statusText.textContent.includes("Ganhou")) {
       statusText.style.color = "green";
+    } else {
+      statusText.style.color = "Chocolate";
     }
   } else {
-    statusText.textContent = `Vez do jogador ${currentPlayer}`;
-    statusText.style.color = currentPlayer === "X" ? "DarkBlue" : "red";
+    if (mode === "online") {
+      if (currentPlayer === localPlayer) {
+        statusText.textContent = `Sua vez (${currentPlayer})`;
+        statusText.style.color = currentPlayer === "X" ? "DarkBlue" : "red";
+      } else {
+        statusText.textContent = `Vez do adversário (${currentPlayer})`;
+        statusText.style.color = "gray";
+      }
+    } else {
+      statusText.textContent = `Vez do jogador ${currentPlayer}`;
+      statusText.style.color = currentPlayer === "X" ? "DarkBlue" : "red";
+    }
   }
 }
 
@@ -77,11 +88,11 @@ function checkWinner() {
     if (board[a] && board[a] === board[b] && board[a] === board[c]) {
       gameOver = true;
       statusText.textContent = `Jogador ${board[a]} Ganhou!`;
-
       if (board[a] === "X") scoreX++;
       else scoreO++;
       updateScoreboard();
       saveState();
+      updateStatus();
       return true;
     }
   }
@@ -92,6 +103,7 @@ function checkWinner() {
     scoreDraw++;
     updateScoreboard();
     saveState();
+    updateStatus();
     return true;
   }
 
@@ -117,7 +129,6 @@ function cellClick(e) {
   const index = e.target.getAttribute("data-index");
   if (board[index] || gameOver) return;
 
-  // Bloqueia jogada se não for a vez do jogador local
   if (mode === "online" && currentPlayer !== localPlayer) return;
 
   board[index] = currentPlayer;
@@ -146,7 +157,6 @@ function resetGame() {
 function startOnline() {
   const roomRef = ref(db, room);
 
-  // Escuta mudanças no Firebase
   onValue(roomRef, snapshot => {
     const data = snapshot.val() || {};
 
@@ -154,7 +164,6 @@ function startOnline() {
     currentPlayer = data.currentPlayer || "X";
     gameOver = data.gameOver || false;
 
-    // 🔹 Mantém o placar persistente
     scoreX = data.scoreX || 0;
     scoreO = data.scoreO || 0;
     scoreDraw = data.scoreDraw || 0;
@@ -164,7 +173,6 @@ function startOnline() {
     updateStatus();
   });
 
-  // Cria estado inicial se a sala estiver vazia
   update(roomRef, {
     board,
     currentPlayer,
@@ -177,7 +185,7 @@ function startOnline() {
 
 // 🔹 Seleção de jogador na própria página
 function choosePlayerUI() {
-  playerSelectDiv.style.display = "flex"; // mostra apenas no modo online
+  playerSelectDiv.style.display = "flex";
 
   btnX.onclick = () => {
     localPlayer = "X";
@@ -196,16 +204,15 @@ function choosePlayerUI() {
 cells.forEach(cell => cell.addEventListener("click", cellClick));
 resetBtn.addEventListener("click", resetGame);
 
-// 🔹 Mudar modo de jogo
 if (modeSelect) {
   modeSelect.addEventListener("change", e => {
     mode = e.target.value;
     if (mode === "online") {
-      choosePlayerUI(); // mostra seleção de jogador
+      choosePlayerUI();
     } else {
       localPlayer = null;
       resetGame();
-      playerSelectDiv.style.display = "none"; // oculta seleção no modo local
+      playerSelectDiv.style.display = "none";
     }
   });
 }
