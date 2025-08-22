@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-// 🔹 CONFIGURAÇÃO DO FIREBASE (substitua pelos seus dados)
+// 🔹 CONFIGURAÇÃO DO FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyCvs1MtZtTrGIKXBDjQ-ihZlZiSm0F3DYU",
   authDomain: "jogo-da-velha-af636.firebaseapp.com",
@@ -13,10 +13,11 @@ const firebaseConfig = {
   measurementId: "G-8D3PT0CX28"
 };
 
+// Inicializa Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// 🔹 Sala fixa (pode mudar para gerar salas diferentes)
+// Sala fixa (para testar; depois pode criar salas aleatórias)
 const sala = "sala1";
 
 // Variáveis do jogo
@@ -28,10 +29,10 @@ const cells = document.querySelectorAll(".cell");
 const statusText = document.getElementById("status");
 const resetBtn = document.getElementById("resetBtn");
 
-// Atualiza status na tela
+// 🔹 Atualiza status na tela
 function updateStatus() {
   if (gameOver) {
-    if (statusText.textContent === "Empate!") {
+    if (statusText.textContent.includes("Empate")) {
       statusText.style.color = "Chocolate";
     } else {
       statusText.style.color = "green";
@@ -42,7 +43,7 @@ function updateStatus() {
   }
 }
 
-// Verifica vencedor
+// 🔹 Verifica vencedor
 function checkWinner() {
   const winPatterns = [
     [0, 1, 2],
@@ -73,7 +74,7 @@ function checkWinner() {
   return false;
 }
 
-// Salvar estado no Firebase
+// 🔹 Salvar estado no Firebase
 function salvarEstado() {
   update(ref(db, sala), {
     board: board,
@@ -82,11 +83,15 @@ function salvarEstado() {
   });
 }
 
-// Quando clica em uma célula
+// 🔹 Quando clica em uma célula
 function cellClick(e) {
   const index = e.target.getAttribute("data-index");
 
+  // Bloqueia se célula preenchida ou jogo terminado
   if (board[index] || gameOver) return;
+
+  // Só permite jogar se for a vez local
+  if (currentPlayer !== playerLocal) return;
 
   board[index] = currentPlayer;
   e.target.textContent = currentPlayer;
@@ -102,7 +107,7 @@ function cellClick(e) {
   updateStatus();
 }
 
-// Reiniciar jogo
+// 🔹 Reiniciar jogo
 function resetGame() {
   board = ["", "", "", "", "", "", "", "", ""];
   gameOver = false;
@@ -112,7 +117,7 @@ function resetGame() {
   updateStatus();
 }
 
-// Escutar mudanças do Firebase em tempo real
+// 🔹 Escutar mudanças do Firebase em tempo real
 onValue(ref(db, sala), (snapshot) => {
   const data = snapshot.val();
   if (data) {
@@ -134,4 +139,3 @@ resetBtn.addEventListener("click", resetGame);
 
 // Estado inicial
 updateStatus();
-salvarEstado();
