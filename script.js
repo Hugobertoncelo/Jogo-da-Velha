@@ -17,35 +17,42 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Room fixed
+// Sala fixa
 const room = "room1";
 
-// Game variables
+// Variáveis do jogo
 let board = Array(9).fill("");
 let currentPlayer = "X";
 let gameOver = false;
+let localPlayer = null; // jogador local (X ou O)
 
-// ⚡ Mode configuration
-let mode = "local"; // "local" or "online"
+// ⚡ Configuração do modo
+let mode = "local"; // "local" ou "online"
 
-// 🔹 Score
+// 🔹 Placar
 let scoreX = 0;
 let scoreO = 0;
 let scoreDraw = 0;
 
+// Elementos HTML
 const cells = document.querySelectorAll(".cell");
 const statusText = document.getElementById("status");
 const resetBtn = document.getElementById("resetBtn");
 const modeSelect = document.getElementById("modeSelect");
 
-// Update scoreboard on screen
+// Player selection UI
+const playerSelectDiv = document.getElementById("playerSelect");
+const btnX = document.getElementById("chooseX");
+const btnO = document.getElementById("chooseO");
+
+// 🔹 Atualiza placar na tela
 function updateScoreboard() {
   document.getElementById("scoreX").textContent = scoreX;
   document.getElementById("scoreO").textContent = scoreO;
   document.getElementById("scoreDraw").textContent = scoreDraw;
 }
 
-// 🔹 Update status on screen
+// 🔹 Atualiza status na tela
 function updateStatus() {
   if (gameOver) {
     statusText.style.color = "Chocolate";
@@ -58,7 +65,7 @@ function updateStatus() {
   }
 }
 
-// 🔹 Check winner
+// 🔹 Verifica vencedor
 function checkWinner() {
   const winPatterns = [
     [0, 1, 2], [3, 4, 5], [6, 7, 8],
@@ -91,7 +98,7 @@ function checkWinner() {
   return false;
 }
 
-// 🔹 Save game state in Firebase
+// 🔹 Salva estado no Firebase
 function saveState() {
   if (mode === "online") {
     update(ref(db, room), {
@@ -105,42 +112,27 @@ function saveState() {
   }
 }
 
-// 🔹 Handle cell click
+// 🔹 Ao clicar na célula
 function cellClick(e) {
   const index = e.target.getAttribute("data-index");
   if (board[index] || gameOver) return;
 
-  if (mode === "online") {
-    const roomRef = ref(db, room);
-    onValue(roomRef, snapshot => {
-      const data = snapshot.val();
-      if (!data) return;
+  // Bloqueia jogada se não for a vez do jogador local
+  if (mode === "online" && currentPlayer !== localPlayer) return;
 
-      // Só permite jogar se for a vez atual
-      if (currentPlayer !== data.currentPlayer) return;
+  board[index] = currentPlayer;
+  e.target.textContent = currentPlayer;
 
-      board[index] = currentPlayer;
-      e.target.textContent = currentPlayer;
-
-      if (!checkWinner()) {
-        currentPlayer = currentPlayer === "X" ? "O" : "X";
-        saveState();
-        updateStatus();
-      } else {
-        updateStatus();
-      }
-    }, { onlyOnce: true });
+  if (!checkWinner()) {
+    currentPlayer = currentPlayer === "X" ? "O" : "X";
+    saveState();
+    updateStatus();
   } else {
-    board[index] = currentPlayer;
-    e.target.textContent = currentPlayer;
-    if (!checkWinner()) {
-      currentPlayer = currentPlayer === "X" ? "O" : "X";
-      updateStatus();
-    }
+    updateStatus();
   }
 }
 
-// 🔹 Reset game
+// 🔹 Reset do jogo (apenas tabuleiro, mantém placar)
 function resetGame() {
   board.fill("");
   gameOver = false;
@@ -150,17 +142,19 @@ function resetGame() {
   updateStatus();
 }
 
-// 🔹 Start online mode
+// 🔹 Inicia modo online
 function startOnline() {
   const roomRef = ref(db, room);
 
-  // Listen to Firebase changes
+  // Escuta mudanças no Firebase
   onValue(roomRef, snapshot => {
     const data = snapshot.val() || {};
+
     board = data.board || Array(9).fill("");
     currentPlayer = data.currentPlayer || "X";
     gameOver = data.gameOver || false;
 
+    // 🔹 Mantém o placar persistente
     scoreX = data.scoreX || 0;
     scoreO = data.scoreO || 0;
     scoreDraw = data.scoreDraw || 0;
@@ -181,22 +175,41 @@ function startOnline() {
   });
 }
 
+// 🔹 Seleção de jogador na própria página
+function choosePlayerUI() {
+  playerSelectDiv.style.display = "flex"; // mostra apenas no modo online
+
+  btnX.onclick = () => {
+    localPlayer = "X";
+    playerSelectDiv.style.display = "none";
+    startOnline();
+  };
+
+  btnO.onclick = () => {
+    localPlayer = "O";
+    playerSelectDiv.style.display = "none";
+    startOnline();
+  };
+}
+
 // 🔹 Event listeners
 cells.forEach(cell => cell.addEventListener("click", cellClick));
 resetBtn.addEventListener("click", resetGame);
 
-// Change game mode
+// 🔹 Mudar modo de jogo
 if (modeSelect) {
   modeSelect.addEventListener("change", e => {
     mode = e.target.value;
     if (mode === "online") {
-      startOnline();
+      choosePlayerUI(); // mostra seleção de jogador
     } else {
+      localPlayer = null;
       resetGame();
+      playerSelectDiv.style.display = "none"; // oculta seleção no modo local
     }
   });
 }
 
-// Initial state
+// Estado inicial
 updateStatus();
 updateScoreboard();

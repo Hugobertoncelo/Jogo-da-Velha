@@ -132,6 +132,52 @@ span {
   box-shadow: 0 0 6px rgba(0, 123, 255, 0.5);
 }
 
+.player-select {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 25px;
+  padding: 15px 25px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.player-select:hover {
+  transform: scale(1.03);
+}
+
+.player-select p {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #2193b0;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Estilo dos botões dentro da seleção de jogador */
+.player-select button {
+  padding: 10px 20px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  background: #2193b0;
+  color: #333;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.player-select button:hover {
+  background: #66a6ff;
+  color: #fff;
+  transform: scale(1.05);
+}
+
 #scoreboard {
   display: flex;
   justify-content: space-around;
