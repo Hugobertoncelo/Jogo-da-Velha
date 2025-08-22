@@ -9,7 +9,27 @@
   <body>
     <div class="container">
       <h1>Jogo da Velha</h1>
-      <div id="status">Vez do jogador <span>X</span></div>
+
+      <!-- 🔹 Seletor de modo -->
+      <div class="mode-select">
+        <label for="modeSelect">Modo de Jogo: </label>
+        <select id="modeSelect">
+          <option value="local" selected>Local</option>
+          <option value="online">Online</option>
+        </select>
+      </div>
+
+      <!-- 🔹 Status do jogo -->
+      <div id="status">Vez do jogador X</div>
+
+      <!-- 🔹 Placar -->
+      <div id="scoreboard">
+        <div>❌: <span id="scoreX">0</span></div>
+        <div>⭕: <span id="scoreO">0</span></div>
+        <div>🤝 Empates: <span id="scoreDraw">0</span></div>
+      </div>
+
+      <!-- 🔹 Tabuleiro -->
       <div class="board">
         <div class="row">
           <div class="cell" data-index="0"></div>
@@ -27,6 +47,8 @@
           <div class="cell" data-index="8"></div>
         </div>
       </div>
+
+      <!-- 🔹 Botão Reiniciar -->
       <button id="resetBtn" type="button" class="btn">
         <strong>REINICIAR JOGO</strong>
         <div id="container-stars">
@@ -39,6 +61,7 @@
       </button>
     </div>
 
+    <!-- Script principal -->
     <script type="module" src="script.js"></script>
   </body>
 </html>

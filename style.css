@@ -100,6 +100,66 @@ span {
   border-radius: 5rem;
 }
 
+/* 🔹 Estilo do seletor de modo */
+.mode-select {
+  margin: 15px 0;
+  text-align: center;
+}
+
+.mode-select label {
+  font-weight: bold;
+  margin-right: 8px;
+  color: #333;
+}
+
+#modeSelect {
+  padding: 6px 12px;
+  font-size: 16px;
+  border: 2px solid #444;
+  border-radius: 6px;
+  background-color: #2193b0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#modeSelect:hover {
+  background-color: #e6e6e6;
+}
+
+#modeSelect:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 6px rgba(0, 123, 255, 0.5);
+}
+
+#scoreboard {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: linear-gradient(135deg, #6dd5ed, #2193b0);
+  padding: 15px 25px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 450px;
+  margin: 30px auto;
+  color: #fff;
+  font-size: 18px;
+}
+
+#scoreboard div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#scoreboard span {
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
 strong {
   z-index: 2;
   font-family: "Avalors Personal Use";
