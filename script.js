@@ -54,10 +54,7 @@ function updateScoreboard() {
 
 // 🔹 Atualiza status na tela
 function updateStatus() {
-  if (gameOver) {
-    // No modo online, o status final já é salvo em Firebase
-    return;
-  }
+  if (gameOver) return;
 
   if (mode === "online") {
     if (currentPlayer === localPlayer) {
@@ -85,25 +82,52 @@ function checkWinner() {
     if (board[a] && board[a] === board[b] && board[a] === board[c]) {
       gameOver = true;
       const winner = board[a];
-      statusText.textContent = `Jogador ${winner} Ganhou!`;
+      const message = `Jogador ${winner} Ganhou!`;
+
+      statusText.textContent = message;
       statusText.style.color = "green";
 
       if (winner === "X") scoreX++;
       else scoreO++;
 
       updateScoreboard();
-      saveState();
+
+      if (mode === "online") {
+        update(ref(db, room), {
+          board,
+          currentPlayer,
+          gameOver,
+          scoreX,
+          scoreO,
+          scoreDraw,
+          statusMessage: message
+        });
+      }
+
       return true;
     }
   }
 
   if (!board.includes("")) {
     gameOver = true;
-    statusText.textContent = "Empate!";
+    const message = "Empate!";
+    statusText.textContent = message;
     statusText.style.color = "Chocolate";
     scoreDraw++;
     updateScoreboard();
-    saveState();
+
+    if (mode === "online") {
+      update(ref(db, room), {
+        board,
+        currentPlayer,
+        gameOver,
+        scoreX,
+        scoreO,
+        scoreDraw,
+        statusMessage: message
+      });
+    }
+
     return true;
   }
 
@@ -120,7 +144,7 @@ function saveState() {
       scoreX,
       scoreO,
       scoreDraw,
-      statusMessage: statusText.textContent // 🔹 salva status para todos verem
+      statusMessage: statusText.textContent
     });
   }
 }
