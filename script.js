@@ -55,24 +55,21 @@ function updateScoreboard() {
 // 🔹 Atualiza status na tela
 function updateStatus() {
   if (gameOver) {
-    if (statusText.textContent.includes("Ganhou")) {
-      statusText.style.color = "green";
+    // No modo online, o status final já é salvo em Firebase
+    return;
+  }
+
+  if (mode === "online") {
+    if (currentPlayer === localPlayer) {
+      statusText.textContent = `Sua vez (${currentPlayer})`;
+      statusText.style.color = currentPlayer === "X" ? "DarkBlue" : "red";
     } else {
-      statusText.style.color = "Chocolate";
+      statusText.textContent = `Vez do adversário (${currentPlayer})`;
+      statusText.style.color = "gray";
     }
   } else {
-    if (mode === "online") {
-      if (currentPlayer === localPlayer) {
-        statusText.textContent = `Sua vez (${currentPlayer})`;
-        statusText.style.color = currentPlayer === "X" ? "DarkBlue" : "red";
-      } else {
-        statusText.textContent = `Vez do adversário (${currentPlayer})`;
-        statusText.style.color = "gray";
-      }
-    } else {
-      statusText.textContent = `Vez do jogador ${currentPlayer}`;
-      statusText.style.color = currentPlayer === "X" ? "DarkBlue" : "red";
-    }
+    statusText.textContent = `Vez do jogador ${currentPlayer}`;
+    statusText.style.color = currentPlayer === "X" ? "DarkBlue" : "red";
   }
 }
 
@@ -87,12 +84,15 @@ function checkWinner() {
   for (let [a, b, c] of winPatterns) {
     if (board[a] && board[a] === board[b] && board[a] === board[c]) {
       gameOver = true;
-      statusText.textContent = `Jogador ${board[a]} Ganhou!`;
-      if (board[a] === "X") scoreX++;
+      const winner = board[a];
+      statusText.textContent = `Jogador ${winner} Ganhou!`;
+      statusText.style.color = "green";
+
+      if (winner === "X") scoreX++;
       else scoreO++;
+
       updateScoreboard();
       saveState();
-      updateStatus();
       return true;
     }
   }
@@ -100,10 +100,10 @@ function checkWinner() {
   if (!board.includes("")) {
     gameOver = true;
     statusText.textContent = "Empate!";
+    statusText.style.color = "Chocolate";
     scoreDraw++;
     updateScoreboard();
     saveState();
-    updateStatus();
     return true;
   }
 
@@ -119,9 +119,17 @@ function saveState() {
       gameOver,
       scoreX,
       scoreO,
-      scoreDraw
+      scoreDraw,
+      statusMessage: statusText.textContent // 🔹 salva status para todos verem
     });
   }
+}
+
+// 🔹 Renderiza o tabuleiro
+function renderBoard() {
+  cells.forEach((cell, i) => {
+    cell.textContent = board[i];
+  });
 }
 
 // 🔹 Ao clicar na célula
@@ -132,13 +140,11 @@ function cellClick(e) {
   if (mode === "online" && currentPlayer !== localPlayer) return;
 
   board[index] = currentPlayer;
-  e.target.textContent = currentPlayer;
+  renderBoard();
 
   if (!checkWinner()) {
     currentPlayer = currentPlayer === "X" ? "O" : "X";
     saveState();
-    updateStatus();
-  } else {
     updateStatus();
   }
 }
@@ -148,7 +154,7 @@ function resetGame() {
   board.fill("");
   gameOver = false;
   currentPlayer = "X";
-  cells.forEach(cell => cell.textContent = "");
+  renderBoard();
   saveState();
   updateStatus();
 }
@@ -169,17 +175,26 @@ function startOnline() {
     scoreDraw = data.scoreDraw || 0;
 
     updateScoreboard();
-    cells.forEach((cell, i) => cell.textContent = board[i]);
-    updateStatus();
+    renderBoard();
+
+    if (data.statusMessage) {
+      statusText.textContent = data.statusMessage;
+      if (data.statusMessage.includes("Ganhou")) statusText.style.color = "green";
+      else if (data.statusMessage.includes("Empate")) statusText.style.color = "Chocolate";
+    } else {
+      updateStatus();
+    }
   });
 
+  // Inicializa a sala se estiver vazia
   update(roomRef, {
     board,
     currentPlayer,
     gameOver,
     scoreX,
     scoreO,
-    scoreDraw
+    scoreDraw,
+    statusMessage: statusText.textContent
   });
 }
 
