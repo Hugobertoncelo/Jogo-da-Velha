@@ -17,24 +17,28 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Sala fixa (para testar; depois pode criar salas aleatórias)
+// Sala fixa
 const sala = "sala1";
 
 // Variáveis do jogo
-let board = ["", "", "", "", "", "", "", "", ""];
+let board = Array(9).fill("");
 let currentPlayer = "X";
 let gameOver = false;
+
+// ⚡ Configuração de modo
+let modo = "local"; // "local" ou "online"
+let playerLocal = "X"; // No modo online, define se é X ou O
 
 const cells = document.querySelectorAll(".cell");
 const statusText = document.getElementById("status");
 const resetBtn = document.getElementById("resetBtn");
+const modeSelect = document.getElementById("modeSelect"); // Um select para escolher modo
 
 // 🔹 Atualiza status na tela
 function updateStatus() {
   if (gameOver) {
-    if (statusText.textContent.includes("Empate")) {
-      statusText.style.color = "Chocolate";
-    } else {
+    statusText.style.color = "Chocolate";
+    if (statusText.textContent.includes("venceu")) {
       statusText.style.color = "green";
     }
   } else {
@@ -46,18 +50,12 @@ function updateStatus() {
 // 🔹 Verifica vencedor
 function checkWinner() {
   const winPatterns = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
+    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+    [0, 4, 8], [2, 4, 6]
   ];
 
-  for (let pattern of winPatterns) {
-    const [a, b, c] = pattern;
+  for (let [a, b, c] of winPatterns) {
     if (board[a] && board[a] === board[b] && board[a] === board[c]) {
       gameOver = true;
       statusText.textContent = `Jogador ${board[a]} venceu!`;
@@ -74,24 +72,25 @@ function checkWinner() {
   return false;
 }
 
-// 🔹 Salvar estado no Firebase
+// 🔹 Salvar estado no Firebase (apenas modo online)
 function salvarEstado() {
-  update(ref(db, sala), {
-    board: board,
-    currentPlayer: currentPlayer,
-    gameOver: gameOver,
-  });
+  if (modo === "online") {
+    update(ref(db, sala), {
+      board: board,
+      currentPlayer: currentPlayer,
+      gameOver: gameOver,
+    });
+  }
 }
 
 // 🔹 Quando clica em uma célula
 function cellClick(e) {
   const index = e.target.getAttribute("data-index");
 
-  // Bloqueia se célula preenchida ou jogo terminado
   if (board[index] || gameOver) return;
 
-  // Só permite jogar se for a vez local
-  if (currentPlayer !== playerLocal) return;
+  // Bloqueia jogada online se não for a vez do jogador
+  if (modo === "online" && currentPlayer !== playerLocal) return;
 
   board[index] = currentPlayer;
   e.target.textContent = currentPlayer;
@@ -109,33 +108,51 @@ function cellClick(e) {
 
 // 🔹 Reiniciar jogo
 function resetGame() {
-  board = ["", "", "", "", "", "", "", "", ""];
+  board.fill("");
   gameOver = false;
   currentPlayer = "X";
-  cells.forEach((cell) => (cell.textContent = ""));
+  cells.forEach(cell => cell.textContent = "");
   salvarEstado();
   updateStatus();
 }
 
-// 🔹 Escutar mudanças do Firebase em tempo real
-onValue(ref(db, sala), (snapshot) => {
-  const data = snapshot.val();
-  if (data) {
-    board = data.board;
-    currentPlayer = data.currentPlayer;
-    gameOver = data.gameOver;
+// 🔹 Escutar mudanças do Firebase em tempo real (modo online)
+if (modo === "online") {
+  onValue(ref(db, sala), snapshot => {
+    const data = snapshot.val();
+    if (data) {
+      board = data.board;
+      currentPlayer = data.currentPlayer;
+      gameOver = data.gameOver;
+      cells.forEach((cell, i) => cell.textContent = board[i]);
+      updateStatus();
+    }
+  });
+}
 
-    // Atualizar UI
-    cells.forEach((cell, index) => {
-      cell.textContent = board[index];
-    });
-    updateStatus();
-  }
-});
-
-// Listeners
-cells.forEach((cell) => cell.addEventListener("click", cellClick));
+// 🔹 Listeners
+cells.forEach(cell => cell.addEventListener("click", cellClick));
 resetBtn.addEventListener("click", resetGame);
+
+// Mudar modo de jogo
+if (modeSelect) {
+  modeSelect.addEventListener("change", e => {
+    modo = e.target.value;
+    if (modo === "online") {
+      playerLocal = "X"; // ou "O" se quiser definir jogador manualmente
+      onValue(ref(db, sala), snapshot => {
+        const data = snapshot.val();
+        if (data) {
+          board = data.board;
+          currentPlayer = data.currentPlayer;
+          gameOver = data.gameOver;
+          cells.forEach((cell, i) => cell.textContent = board[i]);
+          updateStatus();
+        }
+      });
+    }
+  });
+}
 
 // Estado inicial
 updateStatus();
